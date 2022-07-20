@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+  db:
+    image: mysql:8.0.17
+    container_name: "db"
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=todolist
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-proot" ]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
+  todolist:
+    image: todolist
+    container_name: "todolist"
+    restart: always
+    environment:
+      - MYSQL_DOCKER_URL=jdbc:mysql://db:3306/todolist?createDatabaseIfNotExist=true&autoReconnect=true&useSSL=false
+      - MYSQL_DOCKER_USER=root
+      - MYSQL_DOCKER_PASSWORD=root
+    ports:
+      - "8080:8080"
+    build:
+      context: "./"
+      dockerfile: "Dockerfile"
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  
